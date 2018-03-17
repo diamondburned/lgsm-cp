@@ -31,3 +31,4 @@ For authentication method, please use Apache/NGINX basic authentication methods 
 - [ ] Have some non-idiot do the cookies for me because I can't do it :(
 - [ ] Maybe add Bash coloring support
 - [ ] Maybe make it so that the LinuxGSM fast commands don't hang up when bash is not completed, but instead returns the stdout live.
+- [ ] Add support for multiple servers in one user
