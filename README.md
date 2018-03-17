@@ -19,6 +19,7 @@ For authentication method, please use Apache/NGINX basic authentication methods 
 - The "LGSM User" box is obviously for the user the LinuxGSM script is running on.
 - The "Game" box is for gameserver script names, such as `tf2server` or `csgoserver`.
 - While running commands such as Update or Monitor, if the PHP load is loading for more than one minute, chances are it's still running stuff. Do NOT close the page (please I don't know what will happen, you might screw up your server).
+- Console outputs are actually reversed (`tac`) so the latest is at the top.
 
 ### Screenshot
 ![Web UI](http://i.cubeupload.com/yaiuwW.png)
