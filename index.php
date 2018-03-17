@@ -196,7 +196,7 @@
 				echo "<pre>$status_stdout</pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['details'])) {
-				$details_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/tf2server details");
+				$details_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/' . $game . ' details");
 				echo "<pre>$details_stdout<pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['errorlog'])) {
@@ -204,11 +204,11 @@
 				echo "<pre>$errorlog_stdout</pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['consolelog'])) {
-				$consolelog_stdout = shell_exec("cat /home/$lgsmuser/log/console/tf2server-console.log");
+				$consolelog_stdout = shell_exec("cat /home/$lgsmuser/log/console/' . $game . '-console.log");
 				echo "<pre>$consolelog_stdout</pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['alertlog'])) {
-				$alertlog_stdout = shell_exec("cat /home/$lgsmuser/log/script/tf2server-alert.log");
+				$alertlog_stdout = shell_exec("cat /home/$lgsmuser/log/script/' . $game . '-alert.log");
 				echo "<pre>$alertlog_stdout</pre>";
 			}
 		?>
