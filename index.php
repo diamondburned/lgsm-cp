@@ -134,7 +134,7 @@
 </head>
 <body>
 	<header>
-		<h1 style="font-size:300%;"><a href="https://github.com/diamondburned/lgsm-cp">LinuxGSM Control Panel</a></h1>
+		<h1 style="font-size:300%;"><a href="https://github.com/diamondburned/lgsm-cp"><img src="https://github.com/GameServerManagers/LinuxGSM/wiki/images/brand/colour_white/LinuxGSM_colour_white_logo.svg" onerror="this.src='https://github.com/GameServerManagers/LinuxGSM/wiki/images/brand/colour_white/LinuxGSM_colour_white_logo_512.png'" style="height: 62px;position: absolute;margin-left: -52px;margin-top: -6px;"> LinuxGSM_ Control Panel</a></h1>
 	</header>
 	<div class="status">
 		<form method="post">
@@ -147,7 +147,8 @@
 				<div class="dropdown-content">
 					<input type="submit" name="details" value="Details" />
 					<input type="submit" name="monitor" value="Monitor" />
-					<input type="submit" name="restart" value="Restart" />
+					<input type="submit" name="restart" value="Restart/Start" />
+					<input type="submit" name="stop" value="Stop" />
 					<input type="submit" name="update" value="Update" />
 				</div>
 			</div>
@@ -188,37 +189,103 @@
 				}
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['details'])) {
-				$details_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game details 2>&1");
-				echo "<pre>$details_stdout<pre>";
+				$cmd = "/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game details 2>&1";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['monitor'])) {
-				$monitor_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game monitor 2>&1");
-				echo "<pre>$monitor_stdout<pre>";
+				$cmd = "/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game monitor 2>&1";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['restart'])) {
-				$restart_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game restart 2>&1");
-				echo "<pre>$restart_stdout<pre>";
+				$cmd = "/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game restart 2>&1";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['update'])) {
-				$update_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game update 2>&1");
-				echo "<pre>$update_stdout<pre>";
+				$cmd = "/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game update 2>&1";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
+			}
+			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop'])) {
+				$cmd = "/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game stop 2>&1";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['errorlog'])) {
-				$errorlog_stdout = shell_exec("cat /home/$lgsmuser/serverfiles/tf/addons/sourcemod/logs/errors_$(date +%Y%m%d).log 2>&1 | tac");
-				echo "<pre>$errorlog_stdout</pre>";
+				$cmd = "cat /home/$lgsmuser/serverfiles/tf/addons/sourcemod/logs/errors_$(date +%Y%m%d).log 2>&1 | tac";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['consolelog'])) {
-				$consolelog_stdout = shell_exec("cat /home/$lgsmuser/log/console/'$game'-console.log 2>&1 | tac");
-				echo "<pre>$consolelog_stdout</pre>";
+				$cmd = "cat /home/$lgsmuser/log/console/'$game'-console.log 2>&1 | tac";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['alertlog'])) {
-				$alertlog_stdout = shell_exec("cat /home/$lgsmuser/log/script/'$game'-alert.log 2>&1 | tac");
-				echo "<pre>$alertlog_stdout</pre>";
+				$cmd = "cat /home/$lgsmuser/log/script/'$game'-alert.log 2>&1 | tac";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['rconrun'])) {
-				$rcon_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser ./tmux-run '$rconcmd' 2>&1 | tac");
-				sleep(3);
-				echo "<pre>$rcon_stdout</pre>";
+				$cmd = "/usr/bin/sudo -u $lgsmuser ./tmux-run '$rconcmd' 2>&1 | tac";
+				while (@ ob_end_flush()); // end all output buffers if any
+				$proc = popen($cmd, 'r');
+				echo '<pre>';
+				while (!feof($proc)) {
+					echo fread($proc, 4096);
+					@ flush();
+				}
+				echo '</pre>';
 			}
 		?>
 		</div>

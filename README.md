@@ -20,15 +20,19 @@ For authentication method, please use Apache/NGINX basic authentication methods 
 - The "Game" box is for gameserver script names, such as `tf2server` or `csgoserver`.
 - While running commands such as Update or Monitor, if the PHP load is loading for more than one minute, chances are it's still running stuff. Do NOT close the page (please I don't know what will happen, you might screw up your server).
 - Console outputs are actually reversed (`tac`) so the latest is at the top.
+- Two gameservers in one user guide:
+	- For the LGSM User box, put in the gameserver user as usual
+	- For the Game box, put in your `location/gameserver` (e.g. if your script is in `~/1stserver/tf2server-1` then the box must have `1stserver/tf2server-1`)
+	- Run commands like usual
 
 ### Screenshot
 ![Web UI](http://i.cubeupload.com/yaiuwW.png)
 
 ### Todo
-- [x] Add support for other types of RCON
-- [x] Maybe split the srcds-only part to a different file
-- [x] Add more LinuxGSM actions (will do first)
 - [ ] Have some non-idiot do the cookies for me because I can't do it :(
 - [ ] Maybe add Bash coloring support
 - [ ] Maybe make it so that the LinuxGSM fast commands don't hang up when bash is not completed, but instead returns the stdout live.
-- [ ] Add support for multiple servers in one user
+- [x] Add support for multiple servers in one user
+- [x] Add support for other types of RCON
+- [x] Maybe split the srcds-only part to a different file
+- [x] Add more LinuxGSM actions (will do first)
