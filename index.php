@@ -170,6 +170,7 @@
 			</div>
 		</form>
 		<?php
+			ini_set('max_execution_time','1440M');
 			$lgsmuser = $_POST["lgsmuser_post"];
 			$game = $_POST["game"];
 			$rconcmd = $_POST["rconcmd"];
