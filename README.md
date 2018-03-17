@@ -26,7 +26,7 @@ For authentication method, please use Apache/NGINX basic authentication methods 
 	- Run commands like usual
 
 ### Screenshot
-![Web UI](http://i.cubeupload.com/yaiuwW.png)
+![Web UI](http://i.cubeupload.com/plbrTA.png)
 
 ### Todo
 - [ ] Have some non-idiot do the cookies for me because I can't do it :(
