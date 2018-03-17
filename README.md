@@ -6,8 +6,10 @@ RCON script is written by me, but it shouldn't deserve any attention tbh
 
 To properly use the LinuxGSM Web Panel, you need to add this to `visudo`:
 
-```www-data ALL=(gameserver-user) NOPASSWD: /home/gameserver-user/gameserver
-www-data ALL=(gyrtf2) NOPASSWD: webserver-root/tmux-run```
+```
+www-data ALL=(gameserver-user) NOPASSWD: /home/gameserver-user/gameserver
+www-data ALL=(gameserver-user) NOPASSWD: webserver-root/tmux-run
+```
 
 (`gameserver-user` is your gameserver username, `/home/gameserver-user/gameserver` is the LinuxGSM location, `gameserver` is the type of gameserver and `webserver-root` is the webserver root)
 
