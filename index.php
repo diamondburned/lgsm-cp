@@ -140,7 +140,7 @@
 		<form method="post">
 		<div class="buttons">
 			<h3>LinuxGSM tools</h3>
-			<input type="text" name="lgsmuser_post" placeholder="LGSM User" value="" />
+			<input type="text" name="lgsmuser_post" placeholder="LGSM User" value="<?php echo $_COOKIE['lgsmuser']; ?>" />
 			<input type="text" name="game" placeholder="Game" value="<?php echo $_COOKIE['game']; ?>" />
 			<div class="dropdown">
 				<button class="dropbtn">Actions ▼</button>
@@ -174,13 +174,13 @@
 			$rconcmd = $_POST["rconcmd"];
 			$cookietime = time() + 86400;
 			if($_POST['remember']) {
-				setcookie('lgsmuser_cookie', $_POST['lgsmuser_post'], $cookietime);
-				setcookie('game', $_POST['game'], $cookietime);
+				setcookie('lgsmuser', $lgsmuser, $cookietime);
+				setcookie('game', $game, $cookietime);
 			}
 			elseif(!$_POST['remember']) {
-				if(isset($_COOKIE['lgsmuser_cookie'])) {
+				if(isset($_COOKIE['lgsmuser'])) {
 					$past = time() - 100;
-					setcookie(lgsmuser_cookie, gone, $past);
+					setcookie(lgsmuser, gone, $past);
 				}
 				if(isset($_COOKIE['game'])) {
 					$past = time() - 100;
