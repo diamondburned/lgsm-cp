@@ -1,0 +1,5 @@
+#!/bin/bash
+tmux send-keys "${@:1}" Enter
+sleep 2.5; tmux capture-pane -p -S -100
+
+

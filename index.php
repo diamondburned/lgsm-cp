@@ -6,6 +6,11 @@
 		background-color: #1D1D1D;
 		color: #FFF;
 		font-family: monospace;
+		padding: 0;
+		margin: 0;
+		background-repeat: repeat;
+		background-attachment: fixed;
+		min-width: 100%;
 	}
 	.status {
 		max-width: 1200px;
@@ -28,6 +33,16 @@
 		margin: 1px;
 		cursor: pointer;
 		width: 200px;
+	}
+	header { 
+		text-align: center; 
+		border-bottom: 4px solid #0A0A0A; 
+		padding: 8px;
+		background-color: #0F0F0F;
+	}
+	header h1 a {
+		color: #FFF;
+		text-decoration: none;
 	}
 	input.remember {
 		padding: 0px;
@@ -66,7 +81,7 @@
 		cursor: pointer;
 		width: 200px;
 	}
-	.output form {
+	.input {
 		display: flex;
 		justify-content: space-between;
 	}
@@ -118,98 +133,92 @@
 	</style>
 </head>
 <body>
+	<header>
+		<h1 style="font-size:300%;"><a href="https://github.com/diamondburned/lgsm-cp">LinuxGSM Control Panel</a></h1>
+	</header>
 	<div class="status">
+		<form method="post">
 		<div class="buttons">
-			<form method="post">
-				<h3>RCON tools</h3>
-				<input type="text" name="hostname" placeholder="Hostname" value="<?php
-					echo $_COOKIE['hostname']; ?>" />
-				<input type="text" name="port" placeholder="Port" value="<?php
-					echo $_COOKIE['port']; ?>" />
-				<input type="password" name="password" placeholder="Password" value="" />
-				<input type="submit" name="status" value="Print Status" />
-				<h3>LinuxGSM tools</h3>
-				<input type="text" name="lgsmuser" placeholder="LGSM User" value="<?php
-					echo $_COOKIE['lgsmuser']; ?>" />
-				<input type="text" name="game" placeholder="Game" value="<?php
-					echo $_COOKIE['game']; ?>" />
-				<input type="submit" name="details" value="Print Details" />
-				<div class="dropdown">
-					<button class="dropbtn">Logs ▼</button>
-					<div class="dropdown-content">
-						<input type="submit" name="consolelog" value="Latest Console log" />
-						<input type="submit" name="errorlog" value="Latest Error log" />
-						<input type="submit" name="alertlog" value="Latest Alert log" />
-					</div>
+			<h3>LinuxGSM tools</h3>
+			<input type="text" name="lgsmuser_post" placeholder="LGSM User" value="" />
+			<input type="text" name="game" placeholder="Game" value="<?php echo $_COOKIE['game']; ?>" />
+			<div class="dropdown">
+				<button class="dropbtn">Actions ▼</button>
+				<div class="dropdown-content">
+					<input type="submit" name="details" value="Details" />
+					<input type="submit" name="monitor" value="Monitor" />
+					<input type="submit" name="restart" value="Restart" />
+					<input type="submit" name="update" value="Update" />
 				</div>
-				<br />
-				<input class="remember" type="checkbox" name="remember" value="1"><p class="remember">Remember information. Stored items are hostname, port, LGSM user and game.</p>
-			</form>
+			</div>
+			<div class="dropdown">
+				<button class="dropbtn">Logs ▼</button>
+				<div class="dropdown-content">
+					<input type="submit" name="consolelog" value="Latest Console log" />
+					<input type="submit" name="errorlog" value="Latest Error log" />
+					<input type="submit" name="alertlog" value="Latest Alert log" />
+				</div>
+			</div>
+			<br />
+			<input class="remember" type="checkbox" name="remember" value="1"><p class="remember">Remember information. Stored items are LGSM username, game and the remember checkbox. This may not work.</p>
 		</div>
 		<div class="output">
-		<form action="index.php" method="post">
-			<input type="text" name="rconcmd" value="Type RCON command here" style="width: 80%;" />
-			<input type="submit" name="rconrun" value="Run command" style="width: 200px;" />
+			<div class="input">
+				<input type="text" name="rconcmd" placeholder="Type RCON command here" style="width: 1100px;" />
+				<input type="submit" name="rconrun" value="Run" style="width: 90px;" />
+			</div>
 		</form>
 		<?php
-			$host = $_POST["hostname"];
-			$port = $_POST["port"];
-			$rconpw = $_POST["password"];
-			$lgsmuser = $_POST["lgsmuser"];
+			$lgsmuser = $_POST["lgsmuser_post"];
 			$game = $_POST["game"];
+			$rconcmd = $_POST["rconcmd"];
 			$cookietime = time() + 86400;
 			if($_POST['remember']) {
-				setcookie('hostname', $_POST['hostname'], $cookietime);
-				setcookie('port', $_POST['port'], $cookietime);
-				setcookie('lgsmuser', $_POST['lgsmuser'], $cookietime);
+				setcookie('lgsmuser_cookie', $_POST['lgsmuser_post'], $cookietime);
 				setcookie('game', $_POST['game'], $cookietime);
-				setcookie('remember', $_POST['remember'], $cookietime);
 			}
 			elseif(!$_POST['remember']) {
-				if(isset($_COOKIE['hostname'])) {
+				if(isset($_COOKIE['lgsmuser_cookie'])) {
 					$past = time() - 100;
-					setcookie(hostname, gone, $past);
-				}
-				if(isset($_COOKIE['port'])) {
-					$past = time() - 100;
-					setcookie(port, gone, $past);
-				}
-				if(isset($_COOKIE['lgsmuser'])) {
-					$past = time() - 100;
-					setcookie(lgsmuser, gone, $past);
+					setcookie(lgsmuser_cookie, gone, $past);
 				}
 				if(isset($_COOKIE['game'])) {
 					$past = time() - 100;
 					setcookie(game, gone, $past);
 				}
-				if(isset($_COOKIE['remember'])) {
-					$past = time() - 100;
-					setcookie(remember, gone, $past);
-				}
-			}
-			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['status'])) {
-				$status_stdout = shell_exec("./rcon -H $host -p $port -P $rconpw status");
-				echo "<pre>$status_stdout</pre>";
-			}
-			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['rconrun'])) {
-				$status_stdout = shell_exec("./rcon -H $host -p $port -P $rconpw ' . $rconcmd . '");
-				echo "<pre>$status_stdout</pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['details'])) {
-				$details_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/' . $game . ' details");
+				$details_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game details 2>&1");
 				echo "<pre>$details_stdout<pre>";
 			}
+			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['monitor'])) {
+				$monitor_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game monitor 2>&1");
+				echo "<pre>$monitor_stdout<pre>";
+			}
+			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['restart'])) {
+				$restart_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game restart 2>&1");
+				echo "<pre>$restart_stdout<pre>";
+			}
+			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['update'])) {
+				$update_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser /home/$lgsmuser/$game update 2>&1");
+				echo "<pre>$update_stdout<pre>";
+			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['errorlog'])) {
-				$errorlog_stdout = shell_exec("cat /home/$lgsmuser/serverfiles/tf/addons/sourcemod/logs/errors_$(date +%Y%m%d).log");
+				$errorlog_stdout = shell_exec("cat /home/$lgsmuser/serverfiles/tf/addons/sourcemod/logs/errors_$(date +%Y%m%d).log 2>&1 | tac");
 				echo "<pre>$errorlog_stdout</pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['consolelog'])) {
-				$consolelog_stdout = shell_exec("cat /home/$lgsmuser/log/console/' . $game . '-console.log");
+				$consolelog_stdout = shell_exec("cat /home/$lgsmuser/log/console/'$game'-console.log 2>&1 | tac");
 				echo "<pre>$consolelog_stdout</pre>";
 			}
 			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['alertlog'])) {
-				$alertlog_stdout = shell_exec("cat /home/$lgsmuser/log/script/' . $game . '-alert.log");
+				$alertlog_stdout = shell_exec("cat /home/$lgsmuser/log/script/'$game'-alert.log 2>&1 | tac");
 				echo "<pre>$alertlog_stdout</pre>";
+			}
+			if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['rconrun'])) {
+				$rcon_stdout = shell_exec("/usr/bin/sudo -u $lgsmuser ./tmux-run '$rconcmd' 2>&1 | tac");
+				sleep(3);
+				echo "<pre>$rcon_stdout</pre>";
 			}
 		?>
 		</div>
