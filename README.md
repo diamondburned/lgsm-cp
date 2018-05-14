@@ -1,5 +1,5 @@
 # lgsm-cp
-This is a PHP web panel made for LinuxGSM, it uses `bash` and `PHP` to do magical stuff with the compiled RCON script. The light and messy PHP script has been made to output 32767 lines of `tmux` console, which should be enough. This control panel should be compatible with all LinuxGSM-supported servers.
+This is a PHP web panel made for LinuxGSM, it uses `bash` and `PHP` to do magical stuff with `tmux` and LinuxGSM. The light and messy PHP script has been made to output 32767 lines of `tmux` console, which should be enough. This control panel should be compatible with all LinuxGSM-supported servers.
 
 ### Source and instruction
 RCON script is written by me, but it shouldn't deserve any attention tbh
