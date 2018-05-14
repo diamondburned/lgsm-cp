@@ -14,7 +14,7 @@ www-data ALL=(gameserver-user) NOPASSWD: webserver-root/tmux-run
 (`gameserver-user` is your gameserver username, `/home/gameserver-user/gameserver` is the LinuxGSM location, `gameserver` is the type of gameserver and `webserver-root` is the webserver root)
 
 ### Mini-wiki
-- Before trying out the Webpanel, PLEASE edit the `config.php` file.
+- **Before trying out the Webpanel, PLEASE edit the `config.php` file.**
 - The login method is already implemented. To change the password, run `echo -n "PASSWORD HERE" | sha1sum` under Linux and copy the password to `config.php`. The default password is `admin`.
 - While running commands such as Monitor, if the PHP load is loading for more than one minute, chances are it's still running stuff. Do NOT close the page (please I don't know what will happen, you might screw up your server).
 - Console outputs are actually reversed (`tac`) so the latest is at the top.
