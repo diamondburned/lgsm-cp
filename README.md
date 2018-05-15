@@ -33,6 +33,7 @@ www-data ALL=(gameserver-user) NOPASSWD: webserver-root/tmux-run
 - [ ] Maybe add Bash coloring support
 - [ ] Maybe make it so that the LinuxGSM fast commands don't hang up when bash is not completed, but instead returns the stdout live.
 - [ ] Add multiple pages to toggle server (I'm confused as hell right now to be honest)
+- [ ] Make an easy installer that actually installs requirements
 - [x] Add support for multiple servers in one user
 - [x] Add support for other types of RCON
 - [x] Add more LinuxGSM actions (will do first)
