@@ -29,7 +29,7 @@ header h1 a {
 .topbar {
 	background-color: #0A0A0A;
 	width: 100vw;
-	height: 30px;
+	height: 36px;
 	text-align: center;
 }
 .topbar p {
@@ -101,29 +101,42 @@ p.remember{
 }
 
 .buttons {
-	display: inline-block;
-	margin-left: 20px;
-	margin-right: 20px;
+    display: inline-block;
+    margin-left: 20px;
+    margin-right: 20px;
+    max-width: 1200px;
+    width: 90%;
+    text-align: center;
+}
+
+.left-buttons {
+	float: left;
+}
+
+.right-buttons {
+	float: right;
 }
 
 .dropbtn {
-    background-color: #F0F0F0;
-	border: none;
-	color: #000;
-	padding: 5px;
-	text-align: center;
-	text-decoration: none;
-	font-weight: bold;
-	font-size: 16px;
-	margin: 1px;
-	cursor: pointer;
-	width: 200px;
+    background-color: #131313;
+    border: none;
+    color: #FFF;
+    padding: 6px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    margin: 6px 1px 1px;
+    cursor: pointer;
+    width: 200px;
+    z-index: 3;
 }
 
 .dropdown {
     position: relative;
     display: inline-block;
 }
+
 .dropdown-content {
     display: none;
     position: absolute;
@@ -137,15 +150,29 @@ p.remember{
     padding: 12px 16px;
     text-decoration: none;
     display: block;
-    background-color: rgba(0,0,0,0.2);
+    background-color: #000000;
+    text-align: left;
+    margin: 0px;
 }
+
+.dropdown-content input:hover {
+    background-color: #0F0F0F;
+    text-align: left;
+    margin: 0px;
+}
+
 .dropdown-content a:hover {background-color: #202020}
+
 .dropdown:hover .dropdown-content {
     display: block;
-    background-clor: #101010;
+    background-color: #101010;
+    padding: 1px;
+    padding-top: 0px;
+    margin: -1px 0px;
 }
+
 .dropdown:hover .dropbtn {
-    background-color: #CCCCCC;
+    background-color: #000000;
 }
 
 .leftbar, .rightbar {
@@ -153,15 +180,15 @@ p.remember{
 }
 
 input.logout {
-	background-color: #F0F0F0;
+    background-color: #131313;
 	border: none;
-	color: #000;
-	padding: 5px;
+	color: #FFF;
+	padding: 6px;
 	text-align: center;
 	text-decoration: none;
 	font-weight: bold;
 	font-size: 16px;
-	margin: 1px;
+	margin-top: 6px;
 	cursor: pointer;
 	width: 200px;
 }

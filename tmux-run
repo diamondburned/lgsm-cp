@@ -1,5 +1,9 @@
 #!/bin/bash
 #LINES=$(cat config.php | grep -F "config['lines']" | awk '{print $3}' | sed "s/'//g" | sed "s/;//g") <- deprecated
-tmux send-keys "${@:1}" Enter
-sleep 2.5; tmux capture-pane -p -S -32767
+if [[ $1 = "run" ]]; then
+	tmux send-keys "${@:2}" Enter
+	sleep 2.5; tmux capture-pane -J -p -S -32767
+else
+	tmux capture-pane -J -p -S -32767
+fi
 
