@@ -18,10 +18,10 @@ www-data ALL=(gameserver-user) NOPASSWD: webserver-root/tmux-run
 - The login method is already implemented. To change the password, run `echo -n "PASSWORD HERE" | sha1sum` under Linux and copy the password to `config.php`. The default password is `admin`.
 - While running commands such as Monitor, if the PHP load is loading for more than one minute, chances are it's still running stuff. Do NOT close the page (please I don't know what will happen, you might screw up your server).
 - Some console outputs such as Console or Logs are actually reversed (`tac`) so the latest lines are on top.
-- Two gameservers in one user guide: /!/WORK IN PROGRESS/!/
+- Two gameservers in one user guide: **/!/WORK IN PROGRESS/!/**
 
 ### Screenshot
-![Web UI](http://i.cubeupload.com/Y96KzB.png)
+![Web UI](http://i.cubeupload.com/VOGIN8.png)
 
 ### Changelog
 - May 13th, 2018: Removed Update function as currently there isn't a way for this to run in the background. Also added log-in function. First changelog entry.
