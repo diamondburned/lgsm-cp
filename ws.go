@@ -1,10 +1,16 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os/exec"
 
 	"github.com/gorilla/websocket"
+	"github.com/pelletier/go-toml"
 )
 
 var clients = make(map[*websocket.Conn]bool)
@@ -24,7 +30,13 @@ type Request struct {
 	Payload string `json:"payload"`
 }
 
+var config, configError = toml.LoadFile("config.toml")
+
 func main() {
+	if configError != nil {
+		return
+	}
+
 	// Initiates a file server (?) at /
 	fs := http.FileServer(http.Dir("../public"))
 	http.Handle("/", fs)
@@ -72,21 +84,36 @@ func handleConnections(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// Response The struct to respond after a request
+type Response struct {
+	Signal int    `json:"result"`
+	Output string `json:"output"`
+}
+
+//	PLANNED SIGNALS:
+//     -1: Not finished
+//      0: Success
+//      1: Received error
+//      2: Invalid syntax
+//      3: Invalid token
+
 func handleMessages() {
 	// Same loop
 	for {
-		// Listen to broadcast
+		// Listen to broadcast for rq (*Request)
 		rq := <-broadcast
 
 		// Broadcast to all clients
 		for client := range clients {
-			res := processJSON(rq)
-			if res == false {
-				client.Close()
-				continue
-			}
+			var res Response
 
-			err := client.WriteJSON(rq)
+			// Run the request
+			signal, output := processJSON(rq, client)
+
+			res.Signal = signal
+			res.Output = output
+
+			err := client.WriteJSON(&res)
 			if err != nil {
 				log.Printf("Error at client.WriteJSON! %v", err)
 				client.Close()
@@ -96,22 +123,112 @@ func handleMessages() {
 	}
 }
 
-func processJSON(json Request) bool {
-	if json.Token != token {
+func processJSON(request Request, client *websocket.Conn) (int, string) {
+	if request.Token != token {
 		log.Printf("%v", "Invalid token!")
-		return false
+		return 3, "Invalid token!"
 	}
 
-	if json.Action == "CMDRUN" {
-		if json.Payload == "" {
-			return false
-		} else {
-			log.Printf("Oh no! Command %v is being executed!", json.Payload)
+	if request.Payload == "" {
+		return 2, "Empty command!"
+	}
+
+	if request.Action == "CMDRUN" {
+		err := execAsync(request.Payload, client)
+		if err != nil {
+			return 1, fmt.Sprintf("%s", err)
 		}
-	} else {
-		log.Printf("%v", "Unknown Payload.")
-		return false
+
+		return 0, "Executed successfully."
 	}
 
-	return true
+	if request.Action == "consoleprint" {
+		type RequestPayload struct {
+			Alias    string `json:"alias"`
+			Password string `json:"password"`
+		}
+
+		var payload RequestPayload
+		errJSON := json.Unmarshal([]byte(request.Payload), &payload)
+		if errJSON != nil {
+			return 1, fmt.Sprintf("%s", errJSON)
+		}
+
+		user := config.Get(payload.Alias + ".user").(string)
+		gameserver := config.Get(payload.Alias + ".script").(string)
+		password := payload.Password
+
+		err := linuxGSM(request.Action, " ", user, password, gameserver, client)
+		if err != nil {
+			return 1, fmt.Sprintf("%s", err)
+		}
+
+		return 0, "Executed successfully."
+	}
+
+	return 2, "Unknown Payload."
+}
+
+func execAsync(cmd string, client *websocket.Conn) error {
+	var res Response
+
+	cmd = cmd + "&> /dev/stdout"
+	shell := exec.Command("/bin/bash", "-c", cmd)
+	stdout, err := shell.StdoutPipe()
+
+	shell.Start()
+
+	bufout := bufio.NewScanner(stdout)
+	bufout.Split(bufio.ScanLines)
+
+	if err != nil {
+		return err
+	}
+
+	for bufout.Scan() {
+		res.Signal = -1
+		res.Output = bufout.Text()
+
+		errWrite := client.WriteJSON(&res)
+		if errWrite != nil {
+			log.Printf("Error at client.WriteJSON in execAsync! %v", err)
+			client.Close()
+			delete(clients, client)
+		}
+	}
+
+	shell.Wait()
+
+	return nil
+}
+
+// linuxGSM List of LinuxGSM actions
+func linuxGSM(action string, input string, user string, password string, gameserver string, client *websocket.Conn) error {
+	if action == "consoleprint" {
+		print := `echo -e "` + password + `\n" | sudo -S -u ` + user + " tmux capture-pane -J -p -S -32767 -t " + gameserver
+
+		err := execAsync(print, client)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if action == "run" {
+		command := "sudo -u " + user + " tmux send-keys -t " + gameserver + " " + input + "Enter"
+		err1 := execAsync(command, client)
+
+		print := "sudo -u " + user + " tmux capture-pane -J -p -S -32767 -t " + gameserver
+		err2 := execAsync(print, client)
+
+		if err1 != nil || err2 != nil {
+			err := fmt.Errorf("%s\n%s", err1, err2)
+			return err
+		}
+
+		return nil
+	}
+
+	return nil
 }

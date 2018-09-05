@@ -1,0 +1,10 @@
+#[x1mil]
+#	user = "x1mil"
+#	script = "/home/x1mil/tf2server"
+#        
+#[tf2sandbox]
+#	user = "tf2sandbox"
+#	script = "/home/tf2sandbox/tf2server"
+[tf2server]
+	user = "diamond"
+
