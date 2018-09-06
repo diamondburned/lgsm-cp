@@ -5,6 +5,10 @@
 #[tf2sandbox]
 #	user = "tf2sandbox"
 #	script = "/home/tf2sandbox/tf2server"
+[ssl]
+	cert = ""
+	priv = ""
 [tf2server]
 	user = "diamond"
+	script = "/home/diamond/Scripts/tf2server/tf2server"
 
