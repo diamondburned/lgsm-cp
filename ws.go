@@ -48,6 +48,15 @@ func main() {
 	go handleMessages()
 
 	err := http.ListenAndServe(":12000", nil)
+	
+	//publPath := config.Get("ssl.Publ").(string)
+	//privPath := config.Get("ssl.Priv").(string)
+	//if publ == "" || priv == "" {
+	//	log.Fatal("Cannot find Public or Private key file path!")
+	//} else {
+	//	err := http.ListenAndServe(":12000", publ, priv, nil)
+	//}
+	
 	if err != nil {
 		log.Fatal("ERROR! HTTP failed!", err)
 	}
