@@ -10,5 +10,5 @@
 	priv = ""
 [tf2server]
 	user = "diamond"
-	script = "/home/diamond/Scripts/tf2server/tf2server"
+	script = "/home/diamond/LGSM/tf2server"
 

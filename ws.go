@@ -2,12 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os/exec"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/pelletier/go-toml"
@@ -25,9 +24,16 @@ var upgrader = websocket.Upgrader{}
 
 // Request Struct for requests to/from the server/front-end
 type Request struct {
-	Token   string `json:"token"`
-	Action  string `json:"action"`
-	Payload string `json:"payload"`
+	Token   string         `json:"token"`
+	Action  string         `json:"action"`
+	Payload RequestPayload `json:"payload"`
+}
+
+// RequestPayload The payload the WS sends over
+type RequestPayload struct {
+	Alias    string `json:"alias,omitempty"`
+	Password string `json:"password,omitempty"`
+	Input    string `json:"input,omitempty"`
 }
 
 var config, configError = toml.LoadFile("config.toml")
@@ -47,20 +53,26 @@ func main() {
 	// Async Message handlers
 	go handleMessages()
 
-	err := http.ListenAndServe(":12000", nil)
-	
-	//publPath := config.Get("ssl.Publ").(string)
-	//privPath := config.Get("ssl.Priv").(string)
-	//if publ == "" || priv == "" {
-	//	log.Fatal("Cannot find Public or Private key file path!")
-	//} else {
-	//	err := http.ListenAndServe(":12000", publ, priv, nil)
-	//}
-	
-	if err != nil {
-		log.Fatal("ERROR! HTTP failed!", err)
+	PORT := ":12000"
+
+	publPath := config.Get("ssl.Publ")
+	privPath := config.Get("ssl.Priv")
+	if publPath == nil || privPath == nil {
+		log.Printf("Cannot find Public or Private key file path!")
+		log.Printf("%s", "HTTP server up and listening at "+PORT)
+		err := http.ListenAndServe(PORT, nil)
+		if err != nil {
+			log.Fatal("ERROR! HTTP failed!", err)
+		}
+	} else {
+		publ := fmt.Sprintf("%s", publPath)
+		priv := fmt.Sprintf("%s", privPath)
+		log.Printf("%s", "HTTPS server up and listening at "+PORT)
+		err := http.ListenAndServeTLS(PORT, publ, priv, nil)
+		if err != nil {
+			log.Fatal("ERROR! HTTPS failed!", err)
+		}
 	}
-	log.Printf("%s", "HTTP server up and listening at :12000")
 }
 
 func handleConnections(writer http.ResponseWriter, request *http.Request) {
@@ -103,7 +115,7 @@ type Response struct {
 //     -1: Not finished
 //      0: Success
 //      1: Received error
-//      2: Invalid syntax
+//      2: Invalid syntax/Unknown Command
 //      3: Invalid token
 
 func handleMessages() {
@@ -132,42 +144,86 @@ func handleMessages() {
 	}
 }
 
+// a channel to tell it to stop
+var stopchan chan struct{}
+
+// a channel to signal that it's stopped
+var stoppedchan chan struct{}
+
 func processJSON(request Request, client *websocket.Conn) (int, string) {
 	if request.Token != token {
 		log.Printf("%v", "Invalid token!")
 		return 3, "Invalid token!"
 	}
 
-	if request.Payload == "" {
-		return 2, "Empty command!"
-	}
+	//if request.Payload == nil {
+	//	return 2, "Empty command!"
+	//}
 
 	if request.Action == "CMDRUN" {
-		err := execAsync(request.Payload, client)
+		err := execAsync(request.Payload.Input, client)
 		if err != nil {
 			return 1, fmt.Sprintf("%s", err)
 		}
 
 		return 0, "Executed successfully."
+	}
+
+	payload := request.Payload
+
+	user := config.Get(payload.Alias + ".user").(string)
+	gameserver := config.Get(payload.Alias + ".script").(string)
+	password := payload.Password
+	input := payload.Input
+
+	if request.Action == "stopprint" {
+		close(stopchan) // tell it to stop
+		<-stoppedchan   // wait for it to have stopped
+		return 0, "Stopped UpdateConsole."
 	}
 
 	if request.Action == "consoleprint" {
-		type RequestPayload struct {
-			Alias    string `json:"alias"`
-			Password string `json:"password"`
-		}
+		// a channel to tell it to stop
+		var stopchan chan struct{}
 
-		var payload RequestPayload
-		errJSON := json.Unmarshal([]byte(request.Payload), &payload)
-		if errJSON != nil {
-			return 1, fmt.Sprintf("%s", errJSON)
-		}
+		// a channel to signal that it's stopped
+		var stoppedchan chan struct{}
 
-		user := config.Get(payload.Alias + ".user").(string)
-		gameserver := config.Get(payload.Alias + ".script").(string)
-		password := payload.Password
+		gamepath := strings.Split(gameserver, "/")
+		pane := gamepath[len(gamepath)-1]
 
-		err := linuxGSM(request.Action, " ", user, password, gameserver, client)
+		print := `echo -e "` + password + `\n" | sudo -S -u ` + user + " tmux capture-pane -J -p -S -32767 -t " + pane
+
+		// LastOutput A hack to keep track of the last console output
+		LastOutput := make(chan string, 1)
+
+		go func() {
+			defer close(stoppedchan)
+
+			for {
+				select {
+				case <-stopchan:
+					return
+				default:
+					bufout, err := execAsyncUpdate(print, client, LastOutput)
+					if err != nil {
+						break
+					}
+
+					LastOutput <- bufout
+				}
+			}
+		}()
+
+		return -1, ""
+	}
+
+	// {"token":"TOKEN", "action":"request.Action", "payload": {"alias":"SERVER_ALIAS", "password":"SUDO PASSWORD", "input":""}}
+	// SUDO PASSWORD is not needed if Go backend is executed in the same user
+	if request.Action == "start" || request.Action == "stop" || request.Action == "monitor" || request.Action == "details" {
+		command := `echo -e "` + password + `\n" | sudo -S -u ` + user + " " + gameserver + " " + request.Action
+		err := execAsync(command, client)
+
 		if err != nil {
 			return 1, fmt.Sprintf("%s", err)
 		}
@@ -175,9 +231,29 @@ func processJSON(request Request, client *websocket.Conn) (int, string) {
 		return 0, "Executed successfully."
 	}
 
-	return 2, "Unknown Payload."
+	if request.Action == "run" {
+		gamepath := strings.Split(gameserver, "/")
+		pane := gamepath[len(gamepath)-1]
+
+		var replacer = strings.NewReplacer(`"`, `\"`)
+
+		sanitisedInput := replacer.Replace(input)
+
+		command := `echo -e "` + password + `\n" | sudo -S -u ` + user + " tmux send-keys -t " + pane + ` "` + sanitisedInput + `" ENTER`
+		err := execAsync(command, client)
+
+		if err != nil {
+			return 1, fmt.Sprintf("Error! %s", err)
+		}
+
+		return 0, "Executed successfully."
+	}
+
+	return 2, "Unknown Command."
 }
 
+// execAsync Runs shell commands
+// opt [DIFF|]
 func execAsync(cmd string, client *websocket.Conn) error {
 	var res Response
 
@@ -211,33 +287,44 @@ func execAsync(cmd string, client *websocket.Conn) error {
 	return nil
 }
 
-// linuxGSM List of LinuxGSM actions
-func linuxGSM(action string, input string, user string, password string, gameserver string, client *websocket.Conn) error {
-	if action == "consoleprint" {
-		print := `echo -e "` + password + `\n" | sudo -S -u ` + user + " tmux capture-pane -J -p -S -32767 -t " + gameserver
+func execAsyncUpdate(cmd string, client *websocket.Conn, LastOutput chan string) (string, error) {
+	var res Response
 
-		err := execAsync(print, client)
-		if err != nil {
-			return err
-		}
+	cmd = cmd + "&> /dev/stdout"
+	shell := exec.Command("/bin/bash", "-c", cmd)
+	stdout, err := shell.StdoutPipe()
 
-		return nil
+	shell.Start()
+
+	bufout := bufio.NewScanner(stdout)
+	bufout.Split(bufio.ScanLines)
+
+	if err != nil {
+		return "", err
 	}
 
-	if action == "run" {
-		command := "sudo -u " + user + " tmux send-keys -t " + gameserver + " " + input + "Enter"
-		err1 := execAsync(command, client)
+	for bufout.Scan() {
+		LO := <-LastOutput
 
-		print := "sudo -u " + user + " tmux capture-pane -J -p -S -32767 -t " + gameserver
-		err2 := execAsync(print, client)
+		fmt.Printf("%s", LO)
+		print := strings.Replace(bufout.Text(), LO, "", 1)
 
-		if err1 != nil || err2 != nil {
-			err := fmt.Errorf("%s\n%s", err1, err2)
-			return err
+		if print != "" {
+			res.Signal = -1
+			res.Output = print
+
+			errWrite := client.WriteJSON(&res)
+			if errWrite != nil {
+				log.Printf("Error at client.WriteJSON in execAsync! %v", err)
+				client.Close()
+				delete(clients, client)
+			}
 		}
 
-		return nil
+		return bufout.Text(), nil
 	}
 
-	return nil
+	shell.Wait()
+
+	return "", nil
 }
